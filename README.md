@@ -4,6 +4,7 @@
 </div>
 
 [![Total alerts](https://img.shields.io/lgtm/alerts/g/jpcedenog/gointercept.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/jpcedenog/gointercept/alerts/)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fjpcedenog%2Fgointercept.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fjpcedenog%2Fgointercept?ref=badge_shield)
 
 ### About GoIntercept
 
@@ -87,3 +88,6 @@ func main() {
 ### Contributing
 
 ### License
+
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fjpcedenog%2Fgointercept.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fjpcedenog%2Fgointercept?ref=badge_large)
