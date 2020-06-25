@@ -19,6 +19,14 @@ In other words, a middleware layer allows developers to focus on the business lo
  enhance their behavior by providing additional functionality like authentication/authorization, input validation
  , serialization, etc. in a modular and reusable way.
 
+### Install
+
+To use GoIntercept simply get it from its repository:
+
+```shell script
+go get github.com/jpcedenog/gointercept
+```
+
 ### Quick Example
 
 The simple example below shows the power of GoIntercept:
@@ -69,23 +77,48 @@ func main() {
 
 ### Usage
 
+From the quick example above, you may already seen that GoIntercept is extremely easy to wrap around your existing Lambda Handlers. It is designed to get out of your way and remove all the boilerplate related to trivial operations.
+ 
+The steps below describe the process to use GoIntercept:
+
+1. Implement your Lambda Handler.
+2. Import the "gointercept" and "gointercept/interceptors" packages.
+3. In the main() function, wrap your Lambda handler with the gointercept.This() function.
+4. Add all the required interceptors with the .With() method. More interceptors are coming soon! Stay tuned!
+
 ### Dissecting GoIntercept
 
+Just like [Middy](https://middy.js.org/), GoIntercept is based on the onion middleware pattern. This means that each interceptor specified in the With() method wraps around the following interceptor on the list or the Lambda Handler itself when the last interceptor is reached.
+  
 #### Execution Order
 
-#### Stop and Exit
+The sequence of interceptors, passed to the .With() method, specifies the order in which they are executed. This means that the last interceptor on the list runs just before the Lambda handler is executed . Additionally, each interceptor specifies at least one of three possible execution phases: Before, After, and OnError.
+
+The Before phase runs before the following interceptor on the list, or the Lambda handler itself, runs. Note that in this phase the Lambda handler's response has not been created yet, so you will have access only to the request. 
+
+The After phase runs after the following interceptor on the list, or the Lambda handler itself, has run. Note that in this phase the Lambda handler's response has already been created and is fully available.
+
+As an example, if three middlewares have been specified and each has a Before and After phases, the steps below present the expected execution order:
+
+1. middleware1 (before)
+2. middleware2 (before)
+3. middleware3 (before)
+4. Lambda Handler
+5. middleware3 (after)
+6. middleware2 (after)
+7. middleware1 (after)
 
 #### Error Handling
 
 ### Custom Middlewares
-
-#### Middlewares Are Just Functions!
 
 #### Inline Middlewares
 
 ### Available Middlewares
 
 ### Contributing
+
+In the spirit of Open Source Software, everyone is very welcome to contribute to this repository. Feel free to raise issues or to submit Pull Requests.
 
 ### License
 
