@@ -8,16 +8,11 @@
 
 ### About GoIntercept
 
-GoIntercept is a simple but powerful middleware engine that allows you to simplify your AWS Lambda functions when using
- Go.
+GoIntercept is a simple but powerful middleware engine that allows you to simplify your AWS Lambda functions when using Go.
 
-Web frameworks such as Echo, Spiral, Gin, among others, provide middleware functionality to wrap HTTP requests and
- provide additional features without polluting the core logic in the HTTP handler. GoIntercept aims to provide
-  similar behavior but for AWS Lambda functions.
+Web frameworks such as Echo, Spiral, Gin, among others, provide middleware functionality to wrap HTTP requests and provide additional features without polluting the core logic in the HTTP handler. GoIntercept aims to provide similar behavior but for AWS Lambda functions.
 
-In other words, a middleware layer allows developers to focus on the business logic within the Lambda functions and then
- enhance their behavior by providing additional functionality like authentication/authorization, input validation
- , serialization, etc. in a modular and reusable way.
+In other words, a middleware layer allows developers to focus on the business logic within the Lambda functions and then enhance their behavior by providing additional functionality like authentication/authorization, input validation , serialization, etc. in a modular and reusable way.
 
 ### Install
 
@@ -82,39 +77,61 @@ From the quick example above, you may already seen that GoIntercept is extremely
 The steps below describe the process to use GoIntercept:
 
 1. Implement your Lambda Handler.
-2. Import the "gointercept" and "gointercept/interceptors" packages.
-3. In the main() function, wrap your Lambda handler with the gointercept.This() function.
-4. Add all the required interceptors with the .With() method. More interceptors are coming soon! Stay tuned!
+2. Import the *gointercept* and *gointercept/interceptors* packages.
+3. In the *main()* function, wrap your Lambda handler with the *gointercept.This()* function.
+4. Add all the required interceptors with the *.With()* method. **More interceptors are coming soon! Stay tuned!**
 
 ### Dissecting GoIntercept
 
-Just like [Middy](https://middy.js.org/), GoIntercept is based on the onion middleware pattern. This means that each interceptor specified in the With() method wraps around the following interceptor on the list or the Lambda Handler itself when the last interceptor is reached.
+Just like [Middy](https://middy.js.org/), GoIntercept is based on the [onion middleware pattern](https://esbenp.github.io/2015/07/31/implementing-before-after-middleware/). This means that each interceptor specified in the *With()* method wraps around the following interceptor on the list, or the Lambda Handler itself when the last interceptor is reached.
   
 #### Execution Order
 
-The sequence of interceptors, passed to the .With() method, specifies the order in which they are executed. This means that the last interceptor on the list runs just before the Lambda handler is executed . Additionally, each interceptor specifies at least one of three possible execution phases: Before, After, and OnError.
+The sequence of interceptors, passed to the *.With()* method, specifies the order in which they are executed. This means that the last interceptor on the list runs just before the Lambda handler is executed . Additionally, each interceptor can contain at least one of three possible execution phases: *Before, After, and OnError.*
 
-The Before phase runs before the following interceptor on the list, or the Lambda handler itself, runs. Note that in this phase the Lambda handler's response has not been created yet, so you will have access only to the request. 
+The _Before_ phase runs before the following interceptor on the list, or the Lambda handler itself, runs. Note that in this phase the Lambda handler's response has not been created yet, so you will have access only to the request. 
 
-The After phase runs after the following interceptor on the list, or the Lambda handler itself, has run. Note that in this phase the Lambda handler's response has already been created and is fully available.
+The *After* phase runs after the following interceptor on the list, or the Lambda handler itself, has run. Note that in this phase the Lambda handler's response has already been created and is fully available.
 
-As an example, if three middlewares have been specified and each has a Before and After phases, the steps below present the expected execution order:
+As an example, if three middlewares have been specified and each has a *Before* and *After* phases, the steps below present the expected execution order:
 
-1. middleware1 (before)
-2. middleware2 (before)
-3. middleware3 (before)
-4. Lambda Handler
-5. middleware3 (after)
-6. middleware2 (after)
-7. middleware1 (after)
+Execution Step | Middleware | Phase
+-------------- | ---------- | -----
+1 | Middleware1 | Before
+2 | Middleware2 | Before
+3 | Middleware3 | Before
+4 | Lambda Handler | N/A
+5 | Middleware3 | After
+6 | Middleware2 | After
+7 | Middleware1 | After
 
 #### Error Handling
 
-### Custom Middlewares
+Optionally, an interceptor can specify an *OnError* phase handler. This handler is triggered whenever an error is raised by the execution of any of the handler's phases(*Before* or *After*) or the Lambda handler itself.
 
-#### Inline Middlewares
+If no *OnError* handler is specified and an error is raised, the error is simply passed as is to the parent handler (interceptor) or the method that called the Lambda handler.
+
+### Custom Interceptors
+
+Custom interceptors are simply instances of the *gointercept.Interceptor* struct. This struct allows to specify any of the phases executed by the interceptor which are, in turn, specified by the type *LambdaHandler*:
+
+```go
+type LambdaHandler func(context.Context, interface{}) (interface{}, error)
+
+type Interceptor struct {
+	Before  LambdaHandler
+	After   LambdaHandler
+	OnError ErrorHandler
+}
+```
+
+All native interceptors are implemented as a function that returns an instance of *gointercept.Interceptor*. This offers the advantage of specifying configuration parameters that are needed by the interceptor (see the *.AddHeaders* interceptor in the example above).
 
 ### Available Middlewares
+
+Name | Description
+---- | -----------
+Notify | Used for logging purposes. It prints the two given messages: The first is printed during the *Before* phase and the second during the *After* phase.
 
 ### Contributing
 
