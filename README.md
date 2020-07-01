@@ -129,9 +129,12 @@ All native interceptors are implemented as a function that returns an instance o
 
 ### Available Middlewares
 
-Name | Description
----- | -----------
-Notify | Used for logging purposes. It prints the two given messages: The first is printed during the *Before* phase and the second during the *After* phase.
+Name | Phases | Description
+---- | ------ | -----------
+Notify | Before and After | Used for logging purposes. It prints the two given messages during the *Before* and *After* phases respectively.
+CreateAPIGatewayProxyResponse | After or OnError | Formats the output or error of the Lambda handler as an instance of [API Gateway Proxy Response](https://godoc.org/github.com/aws/aws-lambda-go/events#APIGatewayProxyResponse)
+AddHeaders | After | Adds the given headers (provided as key-value pairs) to the response. It converts the response to an APIGatewayProxyResponse if it is not already one
+ParseInput | Before | Reads the JSON-encoded payload (request) and stores it in the value pointed to by its input
 
 ### Contributing
 
