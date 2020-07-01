@@ -72,7 +72,7 @@ func main() {
 
 ### Usage
 
-From the quick example above, you may already seen that GoIntercept is extremely easy to wrap around your existing Lambda Handlers. It is designed to get out of your way and remove all the boilerplate related to trivial operations.
+From the quick example above, we can see that GoIntercept is extremely easy to wrap around your existing Lambda Handlers. It is designed to get out of your way and remove all the boilerplate related to trivial operations.
  
 The steps below describe the process to use GoIntercept:
 
