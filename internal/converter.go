@@ -1,4 +1,4 @@
-package gointercept
+package internal
 
 import (
 	"bytes"

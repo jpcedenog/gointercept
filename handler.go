@@ -5,22 +5,47 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/jpcedenog/gointercept/internal"
 	"log"
 	"reflect"
 )
 
-// The LambdaHandler type represents the signature of the AWS Lambda functions that GoIntercept handles
+// Represents the signature of the AWS Lambda functions that GoIntercept handles
 type LambdaHandler func(context.Context, interface{}) (interface{}, error)
 
-// The ErrorHandler type represents a local function signature used to handle and escalate errors
+// Represents a local function signature used to handle and escalate errors
 type ErrorHandler func(context.Context, interface{}, error) (interface{}, error)
 
-// The Interceptor type contains the three potential handlers that can be applied during the Lambda function
+// Contains the three potential handlers that can be applied during the Lambda function
 // lifecycle. That is, a handler to be executed before, after, an on error of the Lambda function
 type Interceptor struct {
 	Before  LambdaHandler
 	After   LambdaHandler
 	OnError ErrorHandler
+}
+
+// The InterceptedHandler type wraps a LambdaHandler so interceptors can be applied to it
+type InterceptedHandler struct {
+	handler LambdaHandler
+}
+
+// Wraps the given handler with the provided interceptors. Interceptors are wrapped in the order
+// provided. That is, the first interceptor's 'Before' handler (if any) is executed first and before everything else.
+// The last provided interceptor's 'Before' handler (if any) is executed right before the Lambda function is executed.
+// 'After' handlers are executed after the Lambda function execution, in a similar fashion.
+func (a *InterceptedHandler) With(adapters ...Interceptor) LambdaHandler {
+	handler := a.handler
+	last := len(adapters) - 1
+	for i := range adapters {
+		adapter := adapters[last-i]
+		handler = adapter.handle(handler)
+	}
+	return handler
+}
+
+// The This function converts the given Lambda function into an InterceptedHandler
+func This(handler interface{}) *InterceptedHandler {
+	return &InterceptedHandler{handler: newHandler(handler)}
 }
 
 func (interceptor Interceptor) handle(handler LambdaHandler) LambdaHandler {
@@ -59,32 +84,6 @@ func processError(response interface{}, interceptor Interceptor, ctx context.Con
 	}
 }
 
-// The InterceptedHandler type wraps a LambdaHandler so interceptors can be applied to it
-type InterceptedHandler struct {
-	handler LambdaHandler
-}
-
-// The With method wraps the given handler with the provided interceptors. Interceptors are wrapped in the order
-// provided.
-//
-//That is, the first interceptor's 'Before' handler (if any) is executed first and before everything else.
-// The last provided interceptor's 'Before' handler (if any) is executed right before the Lambda function is executed.
-// 'After' handlers are executed after the Lambda function execution, in a similar fashion.
-func (a *InterceptedHandler) With(adapters ...Interceptor) LambdaHandler {
-	handler := a.handler
-	last := len(adapters) - 1
-	for i := range adapters {
-		adapter := adapters[last-i]
-		handler = adapter.handle(handler)
-	}
-	return handler
-}
-
-// The This function converts the given Lambda function into an InterceptedHandler
-func This(handler interface{}) *InterceptedHandler {
-	return &InterceptedHandler{handler: newHandler(handler)}
-}
-
 func errorHandler(e error) LambdaHandler {
 	return func(ctx context.Context, event interface{}) (interface{}, error) {
 		return nil, e
@@ -120,7 +119,7 @@ func newHandler(handlerFunc interface{}) LambdaHandler {
 			eventType := handlerType.In(handlerType.NumIn() - 1)
 			event := reflect.New(eventType)
 
-			payloadBytes, err := GetBytes(payload)
+			payloadBytes, err := internal.GetBytes(payload)
 			if err != nil {
 				return nil, err
 			}

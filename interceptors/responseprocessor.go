@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/jpcedenog/gointercept"
+	"github.com/jpcedenog/gointercept/internal"
 )
 
 type DefaultStatusCodes struct {
@@ -11,12 +12,11 @@ type DefaultStatusCodes struct {
 	Error   int
 }
 
-// The CreateAPIGatewayProxyResponse wraps the output of the Lambda function with an APIGatewayProxyResponse
-// instance
+// Wraps the output of the Lambda function with an APIGatewayProxyResponse instance
 func CreateAPIGatewayProxyResponse(defaultStatusCode *DefaultStatusCodes) gointercept.Interceptor {
 	return gointercept.Interceptor{
 		After: func(ctx context.Context, payload interface{}) (interface{}, error) {
-			response, err := gointercept.ConvertToAPIGatewayResponse(payload)
+			response, err := internal.ConvertToAPIGatewayResponse(payload)
 			if err != nil {
 				return payload, err
 			}
@@ -27,7 +27,7 @@ func CreateAPIGatewayProxyResponse(defaultStatusCode *DefaultStatusCodes) gointe
 			return response, nil
 		},
 		OnError: func(ctx context.Context, payload interface{}, err error) (interface{}, error) {
-			response, e := gointercept.ConvertToAPIGatewayResponse(payload)
+			response, e := internal.ConvertToAPIGatewayResponse(payload)
 			if e != nil {
 				response = events.APIGatewayProxyResponse{}
 				response.Body = e.Error()

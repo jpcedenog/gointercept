@@ -8,19 +8,11 @@
 
 ### About GoIntercept
 
-GoIntercept is a simple but powerful middleware engine that allows you to simplify your AWS Lambda functions when using Go.
+Web frameworks such as Echo, Spiral, Gin, among others, provide middleware functionality to wrap HTTP requests and thus provide additional features without polluting the core logic in the HTTP handler. 
 
-Web frameworks such as Echo, Spiral, Gin, among others, provide middleware functionality to wrap HTTP requests and provide additional features without polluting the core logic in the HTTP handler. GoIntercept aims to provide similar behavior but for AWS Lambda functions.
+A middleware layer allows developers to focus on the business logic when designing and implementing their core business logic. This way, additional functionality like authentication/authorization, input validation , serialization, etc. can be added in a modular and reusable way.
 
-In other words, a middleware layer allows developers to focus on the business logic within the Lambda functions and then enhance their behavior by providing additional functionality like authentication/authorization, input validation , serialization, etc. in a modular and reusable way.
-
-### Install
-
-To use GoIntercept simply get it from its repository:
-
-```shell script
-go get github.com/jpcedenog/gointercept
-```
+GoIntercept is a simple but powerful middleware engine that allows you to simplify your AWS Lambda functions implemented in Go.
 
 ### Quick Example
 
@@ -72,7 +64,7 @@ func main() {
 
 ### Usage
 
-From the quick example above, we can see that GoIntercept is extremely easy to wrap around your existing Lambda Handlers. It is designed to get out of your way and remove all the boilerplate related to trivial operations.
+The example above shows that GoIntercept wraps around your existing Lambda Handlers seamlessly. It is designed to get out of your way and remove all the boilerplate related to trivial operations.
  
 The steps below describe the process to use GoIntercept:
 
@@ -80,8 +72,6 @@ The steps below describe the process to use GoIntercept:
 2. Import the *gointercept* and *gointercept/interceptors* packages.
 3. In the *main()* function, wrap your Lambda handler with the *gointercept.This()* function.
 4. Add all the required interceptors with the *.With()* method. **More interceptors are coming soon! Stay tuned!**
-
-### Dissecting GoIntercept
 
 Just like [Middy](https://middy.js.org/), GoIntercept is based on the [onion middleware pattern](https://esbenp.github.io/2015/07/31/implementing-before-after-middleware/). This means that each interceptor specified in the *With()* method wraps around the following interceptor on the list, or the Lambda Handler itself when the last interceptor is reached.
   

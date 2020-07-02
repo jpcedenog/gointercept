@@ -3,14 +3,15 @@ package interceptors
 import (
 	"context"
 	"github.com/jpcedenog/gointercept"
+	"github.com/jpcedenog/gointercept/internal"
 )
 
-// The AddHeaders interceptor attaches the given headers to the output returned by the Lambda function. It does so
+// Attaches the given headers to the output returned by the Lambda function. It does so
 // by wrapping this output with an APIGatewayProxyResponse if necessary
 func AddHeaders(headers map[string]string) gointercept.Interceptor {
 	return gointercept.Interceptor{
 		After: func(ctx context.Context, payload interface{}) (interface{}, error) {
-			apiGatewayResponse, e := gointercept.ConvertToAPIGatewayResponse(payload)
+			apiGatewayResponse, e := internal.ConvertToAPIGatewayResponse(payload)
 			if e == nil {
 				if apiGatewayResponse.Headers == nil {
 					apiGatewayResponse.Headers = make(map[string]string)
