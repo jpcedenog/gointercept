@@ -1,5 +1,5 @@
 <div align="center">
-  <img alt="Go Intercept" src="img/GoIntercept.png"/>
+  <img alt="Go Intercept" src="img/GoIntercept.jpg"/>
   <p><strong>Elegant and modular middleware for AWS Lambdas with Golang</strong></p>
 </div>
 
