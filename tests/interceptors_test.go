@@ -98,6 +98,48 @@ func TestAPIGatewayRequestResponse(t *testing.T) {
 			expectedBody:   `can't parse "{\"foo\": 1}" - json: unknown field "foo"`,
 			expectedStatus: 400,
 		},
+		{
+			scenario: "Successful parsing and default security headers in output",
+			request:  events.APIGatewayProxyRequest{Body: `{"content": "Random content", "value": 2 }`},
+			handler: gointercept.This(simpleFunction).With(
+				interceptors.CreateAPIGatewayProxyResponse(&interceptors.DefaultStatusCodes{Success: 200, Error: 400}),
+				interceptors.AddSecurityHeaders(),
+				interceptors.ParseInput(&Input{}, false)),
+			expectedBody:   `{"Status":"Function ran successfully!","Content":"Random content"}`,
+			expectedStatus: 200,
+			expectedHeaders: &map[string]string{"X-DNS-Prefetch-Control": "on",
+				"X-Frame-Options":           "DENY",
+				"X-Powered-By":              "",
+				"Strict-Transport-Security": "15552000; includeSubDomains; preLoad",
+				"X-Download-Options":        "noopen",
+				"X-Content-Type-Options":    "nosniff",
+				"Referrer-Policy":           "no-referrer",
+			},
+		},
+		{
+			scenario: "Successful parsing and custom security headers in output",
+			request:  events.APIGatewayProxyRequest{Body: `{"content": "Random content", "value": 2 }`},
+			handler: gointercept.This(simpleFunction).With(
+				interceptors.CreateAPIGatewayProxyResponse(&interceptors.DefaultStatusCodes{Success: 200, Error: 400}),
+				interceptors.AddSecurityHeaders(
+					interceptors.DnsPrefetchControl(false),
+					interceptors.FrameGuard("SAMEORIGIN"),
+					interceptors.HidePoweredBy("PHP 4.2.0"),
+					interceptors.HttpStrictTransportSecurity(2, false, false),
+					interceptors.IENoOpen(false),
+					interceptors.NoSniff(false),
+					interceptors.ReferrerPolicy("same-origin"),
+				),
+				interceptors.ParseInput(&Input{}, false)),
+			expectedBody:   `{"Status":"Function ran successfully!","Content":"Random content"}`,
+			expectedStatus: 200,
+			expectedHeaders: &map[string]string{"X-DNS-Prefetch-Control": "off",
+				"X-Frame-Options":           "SAMEORIGIN",
+				"X-Powered-By":              "PHP 4.2.0",
+				"Strict-Transport-Security": "2",
+				"Referrer-Policy":           "same-origin",
+			},
+		},
 	}
 
 	for _, c := range cases {
