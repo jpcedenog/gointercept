@@ -86,7 +86,7 @@ func ReferrerPolicy(policy string) Option {
 	}
 }
 
-// Attaches the given headers to the output returned by the Lambda function. It does so
+// Attaches the given key-value mappings as HTTP headers to the output returned by the Lambda function. It does so
 // by wrapping this output with an APIGatewayProxyResponse if necessary
 func AddHeaders(headers map[string]string) gointercept.Interceptor {
 	return gointercept.Interceptor{
@@ -112,6 +112,13 @@ func AddHeaders(headers map[string]string) gointercept.Interceptor {
 	}
 }
 
+// Attaches default HTTP security headers to the output returned by the Lambda function. This is similar to the
+// functionality offered by HelmetJS. For more information on the headers added by this interceptor check
+// (https://helmetjs.github.io/)
+//
+// Optionally, this interceptor's behavior can be customized by passing functions to activate, deactivate, or
+// modify the functionality of the default headers. These functions include: DnsPrefetchControl, FrameGuard,
+// HidePoweredBy, HttpStrictTransportSecurity, IENoOpen, NoSniff, and ReferrerPolicy.
 func AddSecurityHeaders(options ...Option) gointercept.Interceptor {
 	securityHeaders := getDefaults()
 	for _, opt := range options {

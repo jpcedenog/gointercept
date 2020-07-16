@@ -8,11 +8,11 @@
 
 ### About GoIntercept
 
-Web frameworks such as Echo, Spiral, Gin, among others, provide middleware functionality to wrap HTTP requests and thus provide additional features without polluting the core logic in the HTTP handler. 
-
 A middleware layer allows developers to focus on the business logic when designing and implementing their core business logic. This way, additional functionality like authentication/authorization, input validation , serialization, etc. can be added in a modular and reusable way.
 
-GoIntercept is a simple but powerful middleware engine that allows you to simplify your AWS Lambda functions implemented in Go.
+Web frameworks such as Echo, Spiral, Gin, among others, provide middleware functionality to wrap HTTP requests and thus provide additional features without polluting the core logic in the HTTP handler. 
+
+GoIntercept is a simple but powerful middleware engine that simplifies the development of AWS Lambda functions implemented in Go.
 
 ### Quick Example
 
@@ -40,13 +40,13 @@ type Output struct {
 	Content string
 }
 
+// Dummy function that succeeds or fails depending on the given input
 func SampleFunction(context context.Context, input Input) (*Output, error) {
-	log.Printf("Executing main content with %#v\n", input)
 	if input.Value%2 != 0 {
 		return nil, errors.New("passed incorrect value")
 	} else {
 		return &Output{
-			Status:  "Function ran successfully!",
+			Status:  "Success!",
 			Content: input.Content,
 		}, nil
 	}
@@ -54,9 +54,10 @@ func SampleFunction(context context.Context, input Input) (*Output, error) {
 
 func main() {
 	lambda.Start(gointercept.This(SampleFunction).With(
-		interceptors.Notify("Start -1-", "End -1-"),
+		interceptors.Notify("SampleFunction starts", "SampleFunction ends"),
 		interceptors.CreateAPIGatewayProxyResponse(&interceptors.DefaultStatusCodes{Success: 200, Error: 400}),
 		interceptors.AddHeaders(map[string]string{"Content-Type": "application/json", "company-header1": "foo1", "company-header2": "foo2"}),
+		interceptors.AddSecurityHeaders(),
 		interceptors.ParseInput(&Input{}, false),
 	))
 }
@@ -64,22 +65,26 @@ func main() {
 
 ### Usage
 
-The example above shows that GoIntercept wraps around your existing Lambda Handlers seamlessly. It is designed to get out of your way and remove all the boilerplate related to trivial operations.
+The example above shows that GoIntercept wraps around an existing Lambda Handler seamlessly. It is designed to get out of the way and remove all the boilerplate related to trivial and repetitive operations, such as: Logging, response formatting, HTTP header creation, input parsing and validation, etc.
  
 The steps below describe the process to use GoIntercept:
 
 1. Implement your Lambda Handler.
 2. Import the *gointercept* and *gointercept/interceptors* packages.
 3. In the *main()* function, wrap your Lambda handler with the *gointercept.This()* function.
-4. Add all the required interceptors with the *.With()* method. **More interceptors are coming soon! Stay tuned!**
+4. Add all the required interceptors with the *.With()* method. **More interceptors coming soon! Stay tuned!**
 
-Just like [Middy](https://middy.js.org/), GoIntercept is based on the [onion middleware pattern](https://esbenp.github.io/2015/07/31/implementing-before-after-middleware/). This means that each interceptor specified in the *With()* method wraps around the following interceptor on the list, or the Lambda Handler itself when the last interceptor is reached.
-  
 #### Execution Order
+
+GoIntercept is based on the [onion middleware pattern](https://esbenp.github.io/2015/07/31/implementing-before-after-middleware/). This means that each interceptor specified in the *With()* method wraps around the subsequent interceptor on the list, or the Lambda Handler itself when the last interceptor is reached.
+
+<div align="center">
+  <img alt="Onion Middleware Pattern" src="img/OnionPattern.jpg"/>
+</div>
 
 The sequence of interceptors, passed to the *.With()* method, specifies the order in which they are executed. This means that the last interceptor on the list runs just before the Lambda handler is executed . Additionally, each interceptor can contain at least one of three possible execution phases: *Before, After, and OnError.*
 
-The _Before_ phase runs before the following interceptor on the list, or the Lambda handler itself, runs. Note that in this phase the Lambda handler's response has not been created yet, so you will have access only to the request. 
+The *Before* phase runs before the following interceptor on the list, or the Lambda handler itself, runs. Note that in this phase the Lambda handler's response has not been created yet, so you will have access only to the request. 
 
 The *After* phase runs after the following interceptor on the list, or the Lambda handler itself, has run. Note that in this phase the Lambda handler's response has already been created and is fully available.
 
@@ -123,12 +128,13 @@ Name | Phases | Description
 ---- | ------ | -----------
 Notify | Before and After | Used for logging purposes. It prints the two given messages during the *Before* and *After* phases respectively.
 CreateAPIGatewayProxyResponse | After or OnError | Formats the output or error of the Lambda handler as an instance of [API Gateway Proxy Response](https://godoc.org/github.com/aws/aws-lambda-go/events#APIGatewayProxyResponse)
-AddHeaders | After | Adds the given headers (provided as key-value pairs) to the response. It converts the response to an APIGatewayProxyResponse if it is not already one
+AddHeaders | After | Adds the given HTTP headers (provided as key-value pairs) to the response. It converts the response to an APIGatewayProxyResponse if it is not already one
 ParseInput | Before | Reads the JSON-encoded payload (request) and stores it in the value pointed to by its input
+AddSecurityHeaders | After | Adds the default security HTTP headers (provided as key-value pairs) to the response. It converts the response to an APIGatewayProxyResponse if it is not already one. These headers apply security best practices as implemented by [HelmetJS](https://helmetjs.github.io/)
 
 ### Contributing
 
-In the spirit of Open Source Software, everyone is very welcome to contribute to this repository. Feel free to raise issues or to submit Pull Requests.
+Everyone is welcome to contribute to this repository. Feel free to raise issues or to submit Pull Requests.
 
 ### License
 
