@@ -130,7 +130,7 @@ Notify | Before and After | Used for logging purposes. It prints the two given m
 CreateAPIGatewayProxyResponse | After or OnError | Formats the output or error of the Lambda handler as an instance of [API Gateway Proxy Response](https://godoc.org/github.com/aws/aws-lambda-go/events#APIGatewayProxyResponse)
 AddHeaders | After | Adds the given HTTP headers (provided as key-value pairs) to the response. It converts the response to an APIGatewayProxyResponse if it is not already one
 ParseInput | Before | Reads the JSON-encoded payload (request) and stores it in the value pointed to by its input
-AddSecurityHeaders | After | Adds the default security HTTP headers (provided as key-value pairs) to the response. It converts the response to an APIGatewayProxyResponse if it is not already one. These headers apply security best practices as implemented by [HelmetJS](https://helmetjs.github.io/)
+AddSecurityHeaders | After | Adds the default security HTTP headers (provided as key-value pairs) to the response. It converts the response to an APIGatewayProxyResponse if it is not already one. These headers follow security best practices, similar to what is done by [HelmetJS](https://helmetjs.github.io/)
 
 ### Contributing
 
