@@ -79,7 +79,7 @@ The steps below describe the process to use GoIntercept:
 GoIntercept is based on the [onion middleware pattern](https://esbenp.github.io/2015/07/31/implementing-before-after-middleware/). This means that each interceptor specified in the *With()* method wraps around the subsequent interceptor on the list, or the Lambda Handler itself when the last interceptor is reached.
 
 <div align="center">
-  <img alt="Onion Middleware Pattern" src="img/OnionPattern.jpg"/>
+  <img alt="Onion Middleware Pattern" src="img/OnionPattern.png"/>
 </div>
 
 The sequence of interceptors, passed to the *.With()* method, specifies the order in which they are executed. This means that the last interceptor on the list runs just before the Lambda handler is executed . Additionally, each interceptor can contain at least one of three possible execution phases: *Before, After, and OnError.*
