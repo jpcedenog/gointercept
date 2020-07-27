@@ -7,12 +7,14 @@ import (
 	"github.com/jpcedenog/gointercept/internal"
 )
 
+// DefaultStatusCodes specifies the default return codes that will be used for successful and
+// unsuccessful responses
 type DefaultStatusCodes struct {
 	Success int
 	Error   int
 }
 
-// Wraps the output of the Lambda function with an APIGatewayProxyResponse instance
+// CreateAPIGatewayProxyResponse Wraps the output of the Lambda function with an APIGatewayProxyResponse instance
 func CreateAPIGatewayProxyResponse(defaultStatusCode *DefaultStatusCodes) gointercept.Interceptor {
 	return gointercept.Interceptor{
 		After: func(ctx context.Context, payload interface{}) (interface{}, error) {

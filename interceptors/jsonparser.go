@@ -1,4 +1,4 @@
-// Provides the building blocks of the functionality provided by GoIntercept
+// Package interceptors provides the building blocks of the functionality provided by GoIntercept
 // All interceptors, native and custom, should be found under this package
 package interceptors
 
@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-// Parses the Lambda function's payload into the value pointed to by the input parameter
+// ParseInput parses the Lambda function's payload into the value pointed to by the input parameter
 func ParseInput(input interface{}, allowUnknownFields bool) gointercept.Interceptor {
 	var localPayload interface{}
 	return gointercept.Interceptor{

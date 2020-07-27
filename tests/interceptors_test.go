@@ -124,7 +124,7 @@ func TestAPIGatewayRequestResponse(t *testing.T) {
 			request:  events.APIGatewayProxyRequest{Body: `{ "content": "Random content", "value": 2 }`},
 			handler: gointercept.This(simpleFunction).With(
 				interceptors.CreateAPIGatewayProxyResponse(&interceptors.DefaultStatusCodes{Success: 200, Error: 400}),
-				interceptors.ValidateJsonSchema(schema),
+				interceptors.ValidateJSONSchema(schema),
 				interceptors.ParseInput(&Input{}, false)),
 			expectedBody:   `{"Status":"Function ran successfully!","Content":"Random content"}`,
 			expectedStatus: 200,
@@ -134,7 +134,7 @@ func TestAPIGatewayRequestResponse(t *testing.T) {
 			request:  events.APIGatewayProxyRequest{Body: `{ "content": "Random content" }`},
 			handler: gointercept.This(simpleFunction).With(
 				interceptors.CreateAPIGatewayProxyResponse(&interceptors.DefaultStatusCodes{Success: 200, Error: 400}),
-				interceptors.ValidateJsonSchema(schema),
+				interceptors.ValidateJSONSchema(schema),
 				interceptors.ParseInput(&Input{}, false)),
 			expectedBody:   `/: {"content":"Random c... "value" value is required`,
 			expectedStatus: 400,
@@ -144,7 +144,7 @@ func TestAPIGatewayRequestResponse(t *testing.T) {
 			request:  events.APIGatewayProxyRequest{Body: `{ "content": "Random content", "value": "30" }`},
 			handler: gointercept.This(simpleFunction).With(
 				interceptors.CreateAPIGatewayProxyResponse(&interceptors.DefaultStatusCodes{Success: 200, Error: 400}),
-				interceptors.ValidateJsonSchema(schema),
+				interceptors.ValidateJSONSchema(schema),
 				interceptors.ParseInput(&Input{}, false)),
 			expectedBody:   `/value: "30" type should be integer, got string`,
 			expectedStatus: 400,
@@ -154,7 +154,7 @@ func TestAPIGatewayRequestResponse(t *testing.T) {
 			request:  events.APIGatewayProxyRequest{Body: `{ "content": "Random content", "value": 20 }`},
 			handler: gointercept.This(simpleFunction).With(
 				interceptors.CreateAPIGatewayProxyResponse(&interceptors.DefaultStatusCodes{Success: 200, Error: 400}),
-				interceptors.ValidateJsonSchema(schema),
+				interceptors.ValidateJSONSchema(schema),
 				interceptors.ParseInput(&Input{}, false)),
 			expectedBody:   `/value: 20 must be less than or equal to 2.000000`,
 			expectedStatus: 400,
@@ -183,10 +183,10 @@ func TestAPIGatewayRequestResponse(t *testing.T) {
 			handler: gointercept.This(simpleFunction).With(
 				interceptors.CreateAPIGatewayProxyResponse(&interceptors.DefaultStatusCodes{Success: 200, Error: 400}),
 				interceptors.AddSecurityHeaders(
-					interceptors.DnsPrefetchControl(false),
+					interceptors.DNSPrefetchControl(false),
 					interceptors.FrameGuard("SAMEORIGIN"),
 					interceptors.HidePoweredBy("PHP 4.2.0"),
-					interceptors.HttpStrictTransportSecurity(2, false, false),
+					interceptors.HTTPStrictTransportSecurity(2, false, false),
 					interceptors.IENoOpen(false),
 					interceptors.NoSniff(false),
 					interceptors.ReferrerPolicy("same-origin"),

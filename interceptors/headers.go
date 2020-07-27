@@ -1,3 +1,5 @@
+// Package interceptors provides the building blocks of the functionality provided by GoIntercept
+// All interceptors, native and custom, should be found under this package
 package interceptors
 
 import (
@@ -15,7 +17,7 @@ type hsts struct {
 }
 
 type securityHeaders struct {
-	activateDnsPrefetchControl bool
+	activateDNSPrefetchControl bool
 	frameGuardAction           string
 	hidePoweredByWith          string
 	hsts                       hsts
@@ -27,7 +29,7 @@ type securityHeaders struct {
 func getDefaults() securityHeaders {
 	securityHeaders := securityHeaders{}
 
-	securityHeaders.activateDnsPrefetchControl = true
+	securityHeaders.activateDNSPrefetchControl = true
 	securityHeaders.frameGuardAction = "DENY"
 	securityHeaders.hidePoweredByWith = ""
 	securityHeaders.hsts.maxAge = 180 * 24 * 60 * 60
@@ -40,27 +42,32 @@ func getDefaults() securityHeaders {
 	return securityHeaders
 }
 
+// Option represents a configuration option for the Headers interceptor
 type Option func(*securityHeaders)
 
-func DnsPrefetchControl(activate bool) Option {
+// DNSPrefetchControl controls browser DNS prefetching
+func DNSPrefetchControl(activate bool) Option {
 	return func(f *securityHeaders) {
-		f.activateDnsPrefetchControl = activate
+		f.activateDNSPrefetchControl = activate
 	}
 }
 
+// FrameGuard controls option to prevent clickjacking
 func FrameGuard(action string) Option {
 	return func(f *securityHeaders) {
 		f.frameGuardAction = action
 	}
 }
 
+// HidePoweredBy controls option to remove the Server/X-Powered-By header
 func HidePoweredBy(with string) Option {
 	return func(f *securityHeaders) {
 		f.hidePoweredByWith = with
 	}
 }
 
-func HttpStrictTransportSecurity(maxAge int, includeSubDomains bool, preLoad bool) Option {
+// HTTPStrictTransportSecurity controls option to set HTTPStrictTransportSecurity
+func HTTPStrictTransportSecurity(maxAge int, includeSubDomains bool, preLoad bool) Option {
 	return func(f *securityHeaders) {
 		f.hsts.maxAge = maxAge
 		f.hsts.includeSubDomains = includeSubDomains
@@ -68,25 +75,28 @@ func HttpStrictTransportSecurity(maxAge int, includeSubDomains bool, preLoad boo
 	}
 }
 
+// IENoOpen controls option to set X-Download-Options for IE8+
 func IENoOpen(activate bool) Option {
 	return func(f *securityHeaders) {
 		f.activateIENoOpen = activate
 	}
 }
 
+// NoSniff controls option to keep clients from sniffing the MIME type
 func NoSniff(activate bool) Option {
 	return func(f *securityHeaders) {
 		f.activateNoSniff = activate
 	}
 }
 
+// ReferrerPolicy controls option to to hide the Referer header
 func ReferrerPolicy(policy string) Option {
 	return func(f *securityHeaders) {
 		f.referrerPolicy = policy
 	}
 }
 
-// Attaches the given key-value mappings as HTTP headers to the output returned by the Lambda function. It does so
+// AddHeaders attaches the given key-value mappings as HTTP headers to the output returned by the Lambda function. It does so
 // by wrapping this output with an APIGatewayProxyResponse if necessary
 func AddHeaders(headers map[string]string) gointercept.Interceptor {
 	return gointercept.Interceptor{
@@ -112,13 +122,13 @@ func AddHeaders(headers map[string]string) gointercept.Interceptor {
 	}
 }
 
-// Attaches default HTTP security headers to the output returned by the Lambda function. This is similar to the
+// AddSecurityHeaders attaches default HTTP security headers to the output returned by the Lambda function. This is similar to the
 // functionality offered by HelmetJS. For more information on the headers added by this interceptor check
 // (https://helmetjs.github.io/)
 //
 // Optionally, this interceptor's behavior can be customized by passing functions to activate, deactivate, or
-// modify the functionality of the default headers. These functions include: DnsPrefetchControl, FrameGuard,
-// HidePoweredBy, HttpStrictTransportSecurity, IENoOpen, NoSniff, and ReferrerPolicy.
+// modify the functionality of the default headers. These functions include: DNSPrefetchControl, FrameGuard,
+// HidePoweredBy, HTTPStrictTransportSecurity, IENoOpen, NoSniff, and ReferrerPolicy.
 func AddSecurityHeaders(options ...Option) gointercept.Interceptor {
 	securityHeaders := getDefaults()
 	for _, opt := range options {
@@ -126,7 +136,7 @@ func AddSecurityHeaders(options ...Option) gointercept.Interceptor {
 	}
 
 	headers := make(map[string]string)
-	if securityHeaders.activateDnsPrefetchControl {
+	if securityHeaders.activateDNSPrefetchControl {
 		headers["X-DNS-Prefetch-Control"] = "on"
 	} else {
 		headers["X-DNS-Prefetch-Control"] = "off"

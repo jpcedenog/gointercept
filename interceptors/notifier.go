@@ -6,7 +6,7 @@ import (
 	"log"
 )
 
-// Logs the given string parameters before and after the execution of the Lambda function
+// Notify logs the given string parameters before and after the execution of the Lambda function
 func Notify(beforeMessage, afterMessage string) gointercept.Interceptor {
 	return gointercept.Interceptor{
 		Before: func(ctx context.Context, payload interface{}) (interface{}, error) {

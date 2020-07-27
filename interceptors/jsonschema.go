@@ -8,10 +8,10 @@ import (
 	"github.com/qri-io/jsonschema"
 )
 
-// Validates the given payload (in JSON format) against the given JSON schema.
+// ValidateJSONSchema validates the given payload (in JSON format) against the given JSON schema.
 //
 // For more information check: https://github.com/qri-io/jsonschema
-func ValidateJsonSchema(schema string) gointercept.Interceptor {
+func ValidateJSONSchema(schema string) gointercept.Interceptor {
 	return gointercept.Interceptor{
 		Before: func(ctx context.Context, payload interface{}) (interface{}, error) {
 			body, err := internal.GetBody(payload)
