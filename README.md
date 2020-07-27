@@ -153,7 +153,7 @@ CreateAPIGatewayProxyResponse | After or OnError | Formats the output or error o
 AddHeaders | After | Adds the given HTTP headers (provided as key-value pairs) to the response. It converts the response to an APIGatewayProxyResponse if it is not already one
 ParseInput | Before | Reads the JSON-encoded payload (request) and stores it in the value pointed to by its input
 AddSecurityHeaders | After | Adds the default security HTTP headers (provided as key-value pairs) to the response. It converts the response to an APIGatewayProxyResponse if it is not already one. These headers follow security best practices, similar to what is done by [HelmetJS](https://helmetjs.github.io/)
-ValidateJsonSchema | After | Validates the payload against the given JSON schema. For more information check [qrio.io's JsonSchema](https://github.com/qri-io/jsonschema)
+ValidateJsonSchema | Before | Validates the payload against the given JSON schema. For more information check [qrio.io's JsonSchema](https://github.com/qri-io/jsonschema)
 
 ### Contributing
 
