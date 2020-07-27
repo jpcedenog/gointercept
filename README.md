@@ -5,6 +5,7 @@
 
 [![Total alerts](https://img.shields.io/lgtm/alerts/g/jpcedenog/gointercept.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/jpcedenog/gointercept/alerts/)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fjpcedenog%2Fgointercept.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fjpcedenog%2Fgointercept?ref=badge_shield)
+[![Go Report Card](https://goreportcard.com/badge/github.com/jpcedenog/gointercept)](https://goreportcard.com/report/github.com/jpcedenog/gointercept)
 
 ### About GoIntercept
 
