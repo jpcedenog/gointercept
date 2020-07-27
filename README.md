@@ -52,12 +52,34 @@ func SampleFunction(context context.Context, input Input) (*Output, error) {
 	}
 }
 
+const (
+	schema = `{
+    "$id": "https://qri.io/schema/",
+    "$comment" : "sample comment",
+    "title": "Input",
+    "type": "object",
+    "properties": {
+        "content": {
+            "type": "string"
+        },
+        "value": {
+            "description": "The Value",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 2
+        }
+    },
+    "required": ["content", "value"]
+  }`
+)
+
 func main() {
 	lambda.Start(gointercept.This(SampleFunction).With(
 		interceptors.Notify("SampleFunction starts", "SampleFunction ends"),
 		interceptors.CreateAPIGatewayProxyResponse(&interceptors.DefaultStatusCodes{Success: 200, Error: 400}),
 		interceptors.AddHeaders(map[string]string{"Content-Type": "application/json", "company-header1": "foo1", "company-header2": "foo2"}),
 		interceptors.AddSecurityHeaders(),
+        interceptors.ValidateJsonSchema(schema),
 		interceptors.ParseInput(&Input{}, false),
 	))
 }
@@ -72,7 +94,7 @@ The steps below describe the process to use GoIntercept:
 1. Implement your Lambda Handler.
 2. Import the *gointercept* and *gointercept/interceptors* packages.
 3. In the *main()* function, wrap your Lambda handler with the *gointercept.This()* function.
-4. Add all the required interceptors with the *.With()* method. **More interceptors coming soon! Stay tuned!**
+4. Add all the required interceptors with the *.With()* method. **New interceptors are being added on a regular basis!**
 
 #### Execution Order
 
@@ -131,6 +153,7 @@ CreateAPIGatewayProxyResponse | After or OnError | Formats the output or error o
 AddHeaders | After | Adds the given HTTP headers (provided as key-value pairs) to the response. It converts the response to an APIGatewayProxyResponse if it is not already one
 ParseInput | Before | Reads the JSON-encoded payload (request) and stores it in the value pointed to by its input
 AddSecurityHeaders | After | Adds the default security HTTP headers (provided as key-value pairs) to the response. It converts the response to an APIGatewayProxyResponse if it is not already one. These headers follow security best practices, similar to what is done by [HelmetJS](https://helmetjs.github.io/)
+ValidateJsonSchema | After | Validates the payload against the given JSON schema. For more information check [qrio.io's JsonSchema](https://github.com/qri-io/jsonschema)
 
 ### Contributing
 

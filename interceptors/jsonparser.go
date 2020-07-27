@@ -1,4 +1,4 @@
-// Package interceptors provides the building blocks of the functionality provided by GoIntercept
+// Provides the building blocks of the functionality provided by GoIntercept
 // All interceptors, native and custom, should be found under this package
 package interceptors
 

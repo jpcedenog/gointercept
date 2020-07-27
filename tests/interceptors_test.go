@@ -22,6 +22,27 @@ type Output struct {
 	Content string
 }
 
+const (
+	schema = `{
+    "$id": "https://qri.io/schema/",
+    "$comment" : "sample comment",
+    "title": "Input",
+    "type": "object",
+    "properties": {
+        "content": {
+            "type": "string"
+        },
+        "value": {
+            "description": "The Value",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 2
+        }
+    },
+    "required": ["content", "value"]
+  }`
+)
+
 func simpleFunction(context context.Context, input Input) (*Output, error) {
 	if input.Value%2 != 0 {
 		return nil, errors.New("incorrect parameter")
@@ -96,6 +117,46 @@ func TestAPIGatewayRequestResponse(t *testing.T) {
 				interceptors.CreateAPIGatewayProxyResponse(&interceptors.DefaultStatusCodes{Success: 200, Error: 400}),
 				interceptors.ParseInput(&Input{}, false)),
 			expectedBody:   `can't parse "{\"foo\": 1}" - json: unknown field "foo"`,
+			expectedStatus: 400,
+		},
+		{
+			scenario: "JSON Schema validation success",
+			request:  events.APIGatewayProxyRequest{Body: `{ "content": "Random content", "value": 2 }`},
+			handler: gointercept.This(simpleFunction).With(
+				interceptors.CreateAPIGatewayProxyResponse(&interceptors.DefaultStatusCodes{Success: 200, Error: 400}),
+				interceptors.ValidateJsonSchema(schema),
+				interceptors.ParseInput(&Input{}, false)),
+			expectedBody:   `{"Status":"Function ran successfully!","Content":"Random content"}`,
+			expectedStatus: 200,
+		},
+		{
+			scenario: "JSON Schema validation error (Missing attribute)",
+			request:  events.APIGatewayProxyRequest{Body: `{ "content": "Random content" }`},
+			handler: gointercept.This(simpleFunction).With(
+				interceptors.CreateAPIGatewayProxyResponse(&interceptors.DefaultStatusCodes{Success: 200, Error: 400}),
+				interceptors.ValidateJsonSchema(schema),
+				interceptors.ParseInput(&Input{}, false)),
+			expectedBody:   `/: {"content":"Random c... "value" value is required`,
+			expectedStatus: 400,
+		},
+		{
+			scenario: "JSON Schema validation error (Wrong attribute type)",
+			request:  events.APIGatewayProxyRequest{Body: `{ "content": "Random content", "value": "30" }`},
+			handler: gointercept.This(simpleFunction).With(
+				interceptors.CreateAPIGatewayProxyResponse(&interceptors.DefaultStatusCodes{Success: 200, Error: 400}),
+				interceptors.ValidateJsonSchema(schema),
+				interceptors.ParseInput(&Input{}, false)),
+			expectedBody:   `/value: "30" type should be integer, got string`,
+			expectedStatus: 400,
+		},
+		{
+			scenario: "JSON Schema validation error (Value out of range)",
+			request:  events.APIGatewayProxyRequest{Body: `{ "content": "Random content", "value": 20 }`},
+			handler: gointercept.This(simpleFunction).With(
+				interceptors.CreateAPIGatewayProxyResponse(&interceptors.DefaultStatusCodes{Success: 200, Error: 400}),
+				interceptors.ValidateJsonSchema(schema),
+				interceptors.ParseInput(&Input{}, false)),
+			expectedBody:   `/value: 20 must be less than or equal to 2.000000`,
 			expectedStatus: 400,
 		},
 		{
