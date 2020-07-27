@@ -10,13 +10,13 @@ import (
 	"reflect"
 )
 
-// Represents the signature of the AWS Lambda functions that GoIntercept handles
+// LambdaHandler represents the signature of the AWS Lambda functions that GoIntercept handles
 type LambdaHandler func(context.Context, interface{}) (interface{}, error)
 
-// Represents a local function signature used to handle and escalate errors
+// ErrorHandler represents a local function signature used to handle and escalate errors
 type ErrorHandler func(context.Context, interface{}, error) (interface{}, error)
 
-// Contains the three potential handlers that can be applied during the Lambda function
+// Interceptor contains the three potential handlers that can be applied during the Lambda function
 // lifecycle. That is, a handler to be executed before, after, an on error of the Lambda function
 type Interceptor struct {
 	Before  LambdaHandler
@@ -29,7 +29,7 @@ type InterceptedHandler struct {
 	handler LambdaHandler
 }
 
-// Wraps the given handler with the provided interceptors. Interceptors are wrapped in the order
+// With wraps the given handler with the provided interceptors. Interceptors are wrapped in the order
 // provided. That is, the first interceptor's 'Before' handler (if any) is executed first and before everything else.
 // The last provided interceptor's 'Before' handler (if any) is executed right before the Lambda function is executed.
 // 'After' handlers are executed after the Lambda function execution, in a similar fashion.
@@ -43,7 +43,7 @@ func (a *InterceptedHandler) With(adapters ...Interceptor) LambdaHandler {
 	return handler
 }
 
-// The This function converts the given Lambda function into an InterceptedHandler
+// This function converts the given Lambda function into an InterceptedHandler
 func This(handler interface{}) *InterceptedHandler {
 	return &InterceptedHandler{handler: newHandler(handler)}
 }
@@ -56,19 +56,19 @@ func (interceptor Interceptor) handle(handler LambdaHandler) LambdaHandler {
 		if interceptor.Before != nil {
 			response, err = interceptor.Before(ctx, request)
 			if err != nil {
-				return processError(response, interceptor, ctx, err)
+				return processError(ctx, response, interceptor, err)
 			}
 		}
 
 		response, err = handler(ctx, response)
 		if err != nil {
-			return processError(response, interceptor, ctx, err)
+			return processError(ctx, response, interceptor, err)
 		}
 
 		if interceptor.After != nil {
 			response, err = interceptor.After(ctx, response)
 			if err != nil {
-				return processError(response, interceptor, ctx, err)
+				return processError(ctx, response, interceptor, err)
 			}
 		}
 
@@ -76,12 +76,12 @@ func (interceptor Interceptor) handle(handler LambdaHandler) LambdaHandler {
 	}
 }
 
-func processError(response interface{}, interceptor Interceptor, ctx context.Context, err error) (interface{}, error) {
+func processError(ctx context.Context, response interface{}, interceptor Interceptor, err error) (interface{}, error) {
 	if interceptor.OnError != nil {
 		return interceptor.OnError(ctx, response, err)
-	} else {
-		return response, err
 	}
+
+	return response, err
 }
 
 func errorHandler(e error) LambdaHandler {
