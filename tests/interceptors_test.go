@@ -46,12 +46,12 @@ const (
 func simpleFunction(context context.Context, input Input) (*Output, error) {
 	if input.Value%2 != 0 {
 		return nil, errors.New("incorrect parameter")
-	} else {
-		return &Output{
-			Status:  "Function ran successfully!",
-			Content: input.Content,
-		}, nil
 	}
+
+	return &Output{
+		Status:  "Function ran successfully!",
+		Content: input.Content,
+	}, nil
 }
 
 func TestParseCustomInput(t *testing.T) {
