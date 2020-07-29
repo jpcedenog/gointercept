@@ -77,12 +77,12 @@ const (
 
 func main() {
 	lambda.Start(gointercept.This(SampleFunction).With(
-		interceptors.Notify("SampleFunction starts", "SampleFunction ends"),
-		interceptors.CreateAPIGatewayProxyResponse(&interceptors.DefaultStatusCodes{Success: 200, Error: 400}),
-		interceptors.AddHeaders(map[string]string{"Content-Type": "application/json", "company-header1": "foo1", "company-header2": "foo2"}),
-		interceptors.AddSecurityHeaders(),
+        interceptors.Notify("SampleFunction starts", "SampleFunction ends"),
+        interceptors.AddHeaders(map[string]string{"Content-Type": "application/json", "company-header1": "foo1", "company-header2": "foo2"}),
+        interceptors.AddSecurityHeaders(),
+        interceptors.CreateAPIGatewayProxyResponse(&interceptors.DefaultStatusCodes{Success: 200, Error: 400}),
         interceptors.ValidateJsonSchema(schema),
-		interceptors.ParseInput(&Input{}, false),
+        interceptors.ParseInput(&Input{}, false),
 	))
 }
 ```
@@ -162,6 +162,5 @@ ValidateJsonSchema | Before | Validates the payload against the given JSON schem
 Everyone is welcome to contribute to this repository. Feel free to raise issues or to submit Pull Requests.
 
 ### License
-
 
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fjpcedenog%2Fgointercept.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fjpcedenog%2Fgointercept?ref=badge_large)
