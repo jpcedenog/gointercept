@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/jpcedenog/gointercept"
 	"github.com/jpcedenog/gointercept/interceptors"
+	"net/http"
 	"strings"
 	"testing"
 )
@@ -45,7 +46,7 @@ const (
 
 func simpleFunction(context context.Context, input Input) (*Output, error) {
 	if input.Value%2 != 0 {
-		return nil, errors.New("incorrect parameter")
+		return nil, errors.New("Value is not even")
 	}
 
 	return &Output{
@@ -85,89 +86,89 @@ func TestAPIGatewayRequestResponse(t *testing.T) {
 			scenario: "Successful parsing and output",
 			request:  events.APIGatewayProxyRequest{Body: "{\"content\": \"Random content\", \"value\": 2 }"},
 			handler: gointercept.This(simpleFunction).With(
-				interceptors.CreateAPIGatewayProxyResponse(&interceptors.DefaultStatusCodes{Success: 200, Error: 400}),
+				interceptors.CreateAPIGatewayProxyResponse(&interceptors.DefaultStatusCodes{http.StatusOK, http.StatusBadRequest}),
 				interceptors.ParseInput(&Input{}, false)),
 			expectedBody:   `{"Status":"Function ran successfully!","Content":"Random content"}`,
-			expectedStatus: 200,
+			expectedStatus: http.StatusOK,
 		},
 		{
 			scenario: "Successful parsing and headers in output",
 			request:  events.APIGatewayProxyRequest{Body: "{\"content\": \"Random content\", \"value\": 2 }"},
 			handler: gointercept.This(simpleFunction).With(
-				interceptors.CreateAPIGatewayProxyResponse(&interceptors.DefaultStatusCodes{Success: 200, Error: 400}),
 				interceptors.AddHeaders(map[string]string{"Content-Type": "application/json", "company-header1": "foo1", "company-header2": "foo2"}),
+				interceptors.CreateAPIGatewayProxyResponse(&interceptors.DefaultStatusCodes{Success: http.StatusOK, Error: http.StatusBadRequest}),
 				interceptors.ParseInput(&Input{}, false)),
 			expectedBody:    `{"Status":"Function ran successfully!","Content":"Random content"}`,
-			expectedStatus:  200,
+			expectedStatus:  http.StatusOK,
 			expectedHeaders: &map[string]string{"Content-Type": "application/json", "company-header1": "foo1", "company-header2": "foo2"},
 		},
 		{
 			scenario: "Successful parsing and error in output",
 			request:  events.APIGatewayProxyRequest{Body: "{\"content\": \"Random content\", \"value\": 1 }"},
 			handler: gointercept.This(simpleFunction).With(
-				interceptors.CreateAPIGatewayProxyResponse(&interceptors.DefaultStatusCodes{Success: 200, Error: 400}),
+				interceptors.CreateAPIGatewayProxyResponse(&interceptors.DefaultStatusCodes{Success: http.StatusOK, Error: http.StatusBadRequest}),
 				interceptors.ParseInput(&Input{}, false)),
-			expectedBody:   `incorrect parameter`,
-			expectedStatus: 400,
+			expectedBody:   `Value is not even`,
+			expectedStatus: http.StatusUnprocessableEntity,
 		},
 		{
 			scenario: "Parsing error",
 			request:  events.APIGatewayProxyRequest{Body: "{\"foo\": 1}"},
 			handler: gointercept.This(simpleFunction).With(
-				interceptors.CreateAPIGatewayProxyResponse(&interceptors.DefaultStatusCodes{Success: 200, Error: 400}),
+				interceptors.CreateAPIGatewayProxyResponse(&interceptors.DefaultStatusCodes{Success: http.StatusOK, Error: http.StatusBadRequest}),
 				interceptors.ParseInput(&Input{}, false)),
 			expectedBody:   `can't parse "{\"foo\": 1}" - json: unknown field "foo"`,
-			expectedStatus: 400,
+			expectedStatus: http.StatusUnprocessableEntity,
 		},
 		{
 			scenario: "JSON Schema validation success",
 			request:  events.APIGatewayProxyRequest{Body: `{ "content": "Random content", "value": 2 }`},
 			handler: gointercept.This(simpleFunction).With(
-				interceptors.CreateAPIGatewayProxyResponse(&interceptors.DefaultStatusCodes{Success: 200, Error: 400}),
+				interceptors.CreateAPIGatewayProxyResponse(&interceptors.DefaultStatusCodes{Success: http.StatusOK, Error: http.StatusBadRequest}),
 				interceptors.ValidateJSONSchema(schema),
 				interceptors.ParseInput(&Input{}, false)),
 			expectedBody:   `{"Status":"Function ran successfully!","Content":"Random content"}`,
-			expectedStatus: 200,
+			expectedStatus: http.StatusOK,
 		},
 		{
 			scenario: "JSON Schema validation error (Missing attribute)",
 			request:  events.APIGatewayProxyRequest{Body: `{ "content": "Random content" }`},
 			handler: gointercept.This(simpleFunction).With(
-				interceptors.CreateAPIGatewayProxyResponse(&interceptors.DefaultStatusCodes{Success: 200, Error: 400}),
+				interceptors.CreateAPIGatewayProxyResponse(&interceptors.DefaultStatusCodes{Success: http.StatusOK, Error: http.StatusBadRequest}),
 				interceptors.ValidateJSONSchema(schema),
 				interceptors.ParseInput(&Input{}, false)),
 			expectedBody:   `/: {"content":"Random c... "value" value is required`,
-			expectedStatus: 400,
+			expectedStatus: http.StatusUnprocessableEntity,
 		},
 		{
 			scenario: "JSON Schema validation error (Wrong attribute type)",
 			request:  events.APIGatewayProxyRequest{Body: `{ "content": "Random content", "value": "30" }`},
 			handler: gointercept.This(simpleFunction).With(
-				interceptors.CreateAPIGatewayProxyResponse(&interceptors.DefaultStatusCodes{Success: 200, Error: 400}),
+				interceptors.CreateAPIGatewayProxyResponse(&interceptors.DefaultStatusCodes{Success: http.StatusOK, Error: http.StatusBadRequest}),
 				interceptors.ValidateJSONSchema(schema),
 				interceptors.ParseInput(&Input{}, false)),
 			expectedBody:   `/value: "30" type should be integer, got string`,
-			expectedStatus: 400,
+			expectedStatus: http.StatusUnprocessableEntity,
 		},
 		{
 			scenario: "JSON Schema validation error (Value out of range)",
 			request:  events.APIGatewayProxyRequest{Body: `{ "content": "Random content", "value": 20 }`},
 			handler: gointercept.This(simpleFunction).With(
-				interceptors.CreateAPIGatewayProxyResponse(&interceptors.DefaultStatusCodes{Success: 200, Error: 400}),
+				interceptors.CreateAPIGatewayProxyResponse(&interceptors.DefaultStatusCodes{Success: http.StatusOK, Error: http.StatusBadRequest}),
 				interceptors.ValidateJSONSchema(schema),
 				interceptors.ParseInput(&Input{}, false)),
 			expectedBody:   `/value: 20 must be less than or equal to 2.000000`,
-			expectedStatus: 400,
+			expectedStatus: http.StatusUnprocessableEntity,
 		},
 		{
 			scenario: "Successful parsing and default security headers in output",
 			request:  events.APIGatewayProxyRequest{Body: `{"content": "Random content", "value": 2 }`},
 			handler: gointercept.This(simpleFunction).With(
-				interceptors.CreateAPIGatewayProxyResponse(&interceptors.DefaultStatusCodes{Success: 200, Error: 400}),
 				interceptors.AddSecurityHeaders(),
+				interceptors.CreateAPIGatewayProxyResponse(&interceptors.DefaultStatusCodes{Success: http.StatusOK, Error: http.StatusBadRequest}),
 				interceptors.ParseInput(&Input{}, false)),
 			expectedBody:   `{"Status":"Function ran successfully!","Content":"Random content"}`,
-			expectedStatus: 200,
+			expectedStatus: http.StatusOK,
 			expectedHeaders: &map[string]string{"X-DNS-Prefetch-Control": "on",
 				"X-Frame-Options":           "DENY",
 				"X-Powered-By":              "",
@@ -181,7 +182,6 @@ func TestAPIGatewayRequestResponse(t *testing.T) {
 			scenario: "Successful parsing and custom security headers in output",
 			request:  events.APIGatewayProxyRequest{Body: `{"content": "Random content", "value": 2 }`},
 			handler: gointercept.This(simpleFunction).With(
-				interceptors.CreateAPIGatewayProxyResponse(&interceptors.DefaultStatusCodes{Success: 200, Error: 400}),
 				interceptors.AddSecurityHeaders(
 					interceptors.DNSPrefetchControl(false),
 					interceptors.FrameGuard("SAMEORIGIN"),
@@ -191,9 +191,10 @@ func TestAPIGatewayRequestResponse(t *testing.T) {
 					interceptors.NoSniff(false),
 					interceptors.ReferrerPolicy("same-origin"),
 				),
+				interceptors.CreateAPIGatewayProxyResponse(&interceptors.DefaultStatusCodes{Success: http.StatusOK, Error: http.StatusBadRequest}),
 				interceptors.ParseInput(&Input{}, false)),
 			expectedBody:   `{"Status":"Function ran successfully!","Content":"Random content"}`,
-			expectedStatus: 200,
+			expectedStatus: http.StatusOK,
 			expectedHeaders: &map[string]string{"X-DNS-Prefetch-Control": "off",
 				"X-Frame-Options":           "SAMEORIGIN",
 				"X-Powered-By":              "PHP 4.2.0",

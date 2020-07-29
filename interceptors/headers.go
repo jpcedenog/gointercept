@@ -4,8 +4,8 @@ package interceptors
 
 import (
 	"context"
+	"github.com/aws/aws-lambda-go/events"
 	"github.com/jpcedenog/gointercept"
-	"github.com/jpcedenog/gointercept/internal"
 	"strconv"
 	"strings"
 )
@@ -96,41 +96,40 @@ func ReferrerPolicy(policy string) Option {
 	}
 }
 
-// AddHeaders attaches the given key-value mappings as HTTP headers to the output returned by the Lambda function. It does so
-// by wrapping this output with an APIGatewayProxyResponse if necessary
+// AddHeaders attaches the given key-value mappings as HTTP headers to the given payload. It assumes that the payload
+// is already an APIGatewayProxyResponse. Otherwise, no headers are added
 func AddHeaders(headers map[string]string) gointercept.Interceptor {
 	return gointercept.Interceptor{
 		After: func(ctx context.Context, payload interface{}) (interface{}, error) {
-			apiGatewayResponse, e := internal.ConvertToAPIGatewayResponse(payload)
-
-			if e != nil {
-				return payload, e
-			}
-
-			if apiGatewayResponse.Headers == nil {
-				apiGatewayResponse.Headers = make(map[string]string)
-			}
-
-			if headers != nil && len(headers) > 0 {
-				for k, v := range headers {
-					apiGatewayResponse.Headers[k] = v
+			if apiGatewayResponse, ok := payload.(events.APIGatewayProxyResponse); ok {
+				if apiGatewayResponse.Headers == nil {
+					apiGatewayResponse.Headers = make(map[string]string)
 				}
+
+				if headers != nil && len(headers) > 0 {
+					for k, v := range headers {
+						apiGatewayResponse.Headers[k] = v
+					}
+				}
+
+				return apiGatewayResponse, nil
 			}
 
-			return apiGatewayResponse, e
+			return payload, nil
 		},
 	}
 }
 
-// AddSecurityHeaders attaches default HTTP security headers to the output returned by the Lambda function. This is similar to the
-// functionality offered by HelmetJS. For more information on the headers added by this interceptor check
-// (https://helmetjs.github.io/)
+// AddSecurityHeaders attaches default HTTP security headers to the output returned by the Lambda function.
+// This is similar to the functionality offered by HelmetJS. For more information on the headers added by this
+// interceptor check (https://helmetjs.github.io/)
 //
 // Optionally, this interceptor's behavior can be customized by passing functions to activate, deactivate, or
 // modify the functionality of the default headers. These functions include: DNSPrefetchControl, FrameGuard,
 // HidePoweredBy, HTTPStrictTransportSecurity, IENoOpen, NoSniff, and ReferrerPolicy.
 func AddSecurityHeaders(options ...Option) gointercept.Interceptor {
 	securityHeaders := getDefaults()
+
 	for _, opt := range options {
 		opt(&securityHeaders)
 	}

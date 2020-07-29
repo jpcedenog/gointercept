@@ -6,6 +6,7 @@ import (
 	"github.com/jpcedenog/gointercept"
 	"github.com/jpcedenog/gointercept/internal"
 	"github.com/qri-io/jsonschema"
+	"net/http"
 )
 
 // ValidateJSONSchema validates the given payload (in JSON format) against the given JSON schema.
@@ -34,6 +35,9 @@ func ValidateJSONSchema(schema string) gointercept.Interceptor {
 			}
 
 			return payload, nil
+		},
+		OnError: func(ctx context.Context, payload interface{}, err error) (interface{}, error) {
+			return payload, &HTTPError{http.StatusUnprocessableEntity, err.Error()}
 		},
 	}
 }

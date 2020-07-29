@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/jpcedenog/gointercept"
 	"github.com/jpcedenog/gointercept/internal"
+	"net/http"
 	"strings"
 )
 
@@ -30,6 +31,9 @@ func ParseInput(input interface{}, allowUnknownFields bool) gointercept.Intercep
 			}
 
 			return input, nil
+		},
+		OnError: func(ctx context.Context, payload interface{}, err error) (interface{}, error) {
+			return payload, &HTTPError{http.StatusUnprocessableEntity, err.Error()}
 		},
 	}
 }
