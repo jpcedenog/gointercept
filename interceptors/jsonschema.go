@@ -9,10 +9,10 @@ import (
 	"net/http"
 )
 
-// ValidateJSONSchema validates the given payload (in JSON format) against the given JSON schema.
+// ValidateBodyJSONSchema validates the given payload (in JSON format) against the given JSON schema.
 //
 // For more information check: https://github.com/qri-io/jsonschema
-func ValidateJSONSchema(schema string) gointercept.Interceptor {
+func ValidateBodyJSONSchema(schema string) gointercept.Interceptor {
 	return gointercept.Interceptor{
 		Before: func(ctx context.Context, payload interface{}) (interface{}, error) {
 			body, err := internal.GetBody(payload)

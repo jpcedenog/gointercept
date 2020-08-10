@@ -59,7 +59,7 @@ func TestParseCustomInput(t *testing.T) {
 	request := events.APIGatewayProxyRequest{Body: "{\"content\": \"Random content\", \"value\": 2 }"}
 
 	handler := gointercept.This(simpleFunction).With(
-		interceptors.ParseInput(&Input{}, false),
+		interceptors.ParseBody(&Input{}, false),
 	)
 
 	var response Output
@@ -75,19 +75,20 @@ func TestParseCustomInput(t *testing.T) {
 
 func TestAPIGatewayRequestResponse(t *testing.T) {
 	cases := []struct {
-		scenario        string
-		request         interface{}
-		handler         gointercept.LambdaHandler
-		expectedBody    string
-		expectedStatus  int
-		expectedHeaders *map[string]string
+		scenario               string
+		request                interface{}
+		handler                gointercept.LambdaHandler
+		expectedBody           string
+		expectedStatus         int
+		expectedHeaders        map[string]string
+		expectedRequestHeaders map[string]string
 	}{
 		{
 			scenario: "Successful parsing and output",
 			request:  events.APIGatewayProxyRequest{Body: "{\"content\": \"Random content\", \"value\": 2 }"},
 			handler: gointercept.This(simpleFunction).With(
-				interceptors.CreateAPIGatewayProxyResponse(&interceptors.DefaultStatusCodes{http.StatusOK, http.StatusBadRequest}),
-				interceptors.ParseInput(&Input{}, false)),
+				interceptors.CreateAPIGatewayProxyResponse(&interceptors.DefaultStatusCodes{Success: http.StatusOK, Error: http.StatusBadRequest}),
+				interceptors.ParseBody(&Input{}, false)),
 			expectedBody:   `{"Status":"Function ran successfully!","Content":"Random content"}`,
 			expectedStatus: http.StatusOK,
 		},
@@ -97,17 +98,17 @@ func TestAPIGatewayRequestResponse(t *testing.T) {
 			handler: gointercept.This(simpleFunction).With(
 				interceptors.AddHeaders(map[string]string{"Content-Type": "application/json", "company-header1": "foo1", "company-header2": "foo2"}),
 				interceptors.CreateAPIGatewayProxyResponse(&interceptors.DefaultStatusCodes{Success: http.StatusOK, Error: http.StatusBadRequest}),
-				interceptors.ParseInput(&Input{}, false)),
+				interceptors.ParseBody(&Input{}, false)),
 			expectedBody:    `{"Status":"Function ran successfully!","Content":"Random content"}`,
 			expectedStatus:  http.StatusOK,
-			expectedHeaders: &map[string]string{"Content-Type": "application/json", "company-header1": "foo1", "company-header2": "foo2"},
+			expectedHeaders: map[string]string{"Content-Type": "application/json", "company-header1": "foo1", "company-header2": "foo2"},
 		},
 		{
 			scenario: "Successful parsing and error in output",
 			request:  events.APIGatewayProxyRequest{Body: "{\"content\": \"Random content\", \"value\": 1 }"},
 			handler: gointercept.This(simpleFunction).With(
 				interceptors.CreateAPIGatewayProxyResponse(&interceptors.DefaultStatusCodes{Success: http.StatusOK, Error: http.StatusBadRequest}),
-				interceptors.ParseInput(&Input{}, false)),
+				interceptors.ParseBody(&Input{}, false)),
 			expectedBody:   `Value is not even`,
 			expectedStatus: http.StatusUnprocessableEntity,
 		},
@@ -116,7 +117,7 @@ func TestAPIGatewayRequestResponse(t *testing.T) {
 			request:  events.APIGatewayProxyRequest{Body: "{\"foo\": 1}"},
 			handler: gointercept.This(simpleFunction).With(
 				interceptors.CreateAPIGatewayProxyResponse(&interceptors.DefaultStatusCodes{Success: http.StatusOK, Error: http.StatusBadRequest}),
-				interceptors.ParseInput(&Input{}, false)),
+				interceptors.ParseBody(&Input{}, false)),
 			expectedBody:   `can't parse "{\"foo\": 1}" - json: unknown field "foo"`,
 			expectedStatus: http.StatusUnprocessableEntity,
 		},
@@ -125,8 +126,8 @@ func TestAPIGatewayRequestResponse(t *testing.T) {
 			request:  events.APIGatewayProxyRequest{Body: `{ "content": "Random content", "value": 2 }`},
 			handler: gointercept.This(simpleFunction).With(
 				interceptors.CreateAPIGatewayProxyResponse(&interceptors.DefaultStatusCodes{Success: http.StatusOK, Error: http.StatusBadRequest}),
-				interceptors.ValidateJSONSchema(schema),
-				interceptors.ParseInput(&Input{}, false)),
+				interceptors.ValidateBodyJSONSchema(schema),
+				interceptors.ParseBody(&Input{}, false)),
 			expectedBody:   `{"Status":"Function ran successfully!","Content":"Random content"}`,
 			expectedStatus: http.StatusOK,
 		},
@@ -135,8 +136,8 @@ func TestAPIGatewayRequestResponse(t *testing.T) {
 			request:  events.APIGatewayProxyRequest{Body: `{ "content": "Random content" }`},
 			handler: gointercept.This(simpleFunction).With(
 				interceptors.CreateAPIGatewayProxyResponse(&interceptors.DefaultStatusCodes{Success: http.StatusOK, Error: http.StatusBadRequest}),
-				interceptors.ValidateJSONSchema(schema),
-				interceptors.ParseInput(&Input{}, false)),
+				interceptors.ValidateBodyJSONSchema(schema),
+				interceptors.ParseBody(&Input{}, false)),
 			expectedBody:   `/: {"content":"Random c... "value" value is required`,
 			expectedStatus: http.StatusUnprocessableEntity,
 		},
@@ -145,8 +146,8 @@ func TestAPIGatewayRequestResponse(t *testing.T) {
 			request:  events.APIGatewayProxyRequest{Body: `{ "content": "Random content", "value": "30" }`},
 			handler: gointercept.This(simpleFunction).With(
 				interceptors.CreateAPIGatewayProxyResponse(&interceptors.DefaultStatusCodes{Success: http.StatusOK, Error: http.StatusBadRequest}),
-				interceptors.ValidateJSONSchema(schema),
-				interceptors.ParseInput(&Input{}, false)),
+				interceptors.ValidateBodyJSONSchema(schema),
+				interceptors.ParseBody(&Input{}, false)),
 			expectedBody:   `/value: "30" type should be integer, got string`,
 			expectedStatus: http.StatusUnprocessableEntity,
 		},
@@ -155,8 +156,8 @@ func TestAPIGatewayRequestResponse(t *testing.T) {
 			request:  events.APIGatewayProxyRequest{Body: `{ "content": "Random content", "value": 20 }`},
 			handler: gointercept.This(simpleFunction).With(
 				interceptors.CreateAPIGatewayProxyResponse(&interceptors.DefaultStatusCodes{Success: http.StatusOK, Error: http.StatusBadRequest}),
-				interceptors.ValidateJSONSchema(schema),
-				interceptors.ParseInput(&Input{}, false)),
+				interceptors.ValidateBodyJSONSchema(schema),
+				interceptors.ParseBody(&Input{}, false)),
 			expectedBody:   `/value: 20 must be less than or equal to 2.000000`,
 			expectedStatus: http.StatusUnprocessableEntity,
 		},
@@ -166,10 +167,10 @@ func TestAPIGatewayRequestResponse(t *testing.T) {
 			handler: gointercept.This(simpleFunction).With(
 				interceptors.AddSecurityHeaders(),
 				interceptors.CreateAPIGatewayProxyResponse(&interceptors.DefaultStatusCodes{Success: http.StatusOK, Error: http.StatusBadRequest}),
-				interceptors.ParseInput(&Input{}, false)),
+				interceptors.ParseBody(&Input{}, false)),
 			expectedBody:   `{"Status":"Function ran successfully!","Content":"Random content"}`,
 			expectedStatus: http.StatusOK,
-			expectedHeaders: &map[string]string{"X-DNS-Prefetch-Control": "on",
+			expectedHeaders: map[string]string{"X-DNS-Prefetch-Control": "on",
 				"X-Frame-Options":           "DENY",
 				"X-Powered-By":              "",
 				"Strict-Transport-Security": "15552000; includeSubDomains; preLoad",
@@ -192,15 +193,43 @@ func TestAPIGatewayRequestResponse(t *testing.T) {
 					interceptors.ReferrerPolicy("same-origin"),
 				),
 				interceptors.CreateAPIGatewayProxyResponse(&interceptors.DefaultStatusCodes{Success: http.StatusOK, Error: http.StatusBadRequest}),
-				interceptors.ParseInput(&Input{}, false)),
+				interceptors.ParseBody(&Input{}, false)),
 			expectedBody:   `{"Status":"Function ran successfully!","Content":"Random content"}`,
 			expectedStatus: http.StatusOK,
-			expectedHeaders: &map[string]string{"X-DNS-Prefetch-Control": "off",
+			expectedHeaders: map[string]string{"X-DNS-Prefetch-Control": "off",
 				"X-Frame-Options":           "SAMEORIGIN",
 				"X-Powered-By":              "PHP 4.2.0",
 				"Strict-Transport-Security": "2",
 				"Referrer-Policy":           "same-origin",
 			},
+		},
+		{
+			scenario: "Successful parsing and all-lowercase HTTP headers in request",
+			request: events.APIGatewayProxyRequest{
+				Body:    `{"content": "Random content", "value": 2 }`,
+				Headers: map[string]string{"Content-Type": "application/json", "X-DNSPrefetch-Control": "off"},
+			},
+			handler: gointercept.This(simpleFunction).With(
+				interceptors.CreateAPIGatewayProxyResponse(&interceptors.DefaultStatusCodes{Success: http.StatusOK, Error: http.StatusBadRequest}),
+				interceptors.NormalizeHTTPRequestHeaders(false),
+				interceptors.ParseBody(&Input{}, false)),
+			expectedBody:           `{"Status":"Function ran successfully!","Content":"Random content"}`,
+			expectedStatus:         http.StatusOK,
+			expectedRequestHeaders: map[string]string{"content-type": "application/json", "X-DNSPrefetch-Control": "off"},
+		},
+		{
+			scenario: "Successful parsing and all-normalized HTTP headers in request",
+			request: events.APIGatewayProxyRequest{
+				Body:    `{"content": "Random content", "value": 2 }`,
+				Headers: map[string]string{"content-type": "application/json", "X-DNSPrefetch-Control": "off"},
+			},
+			handler: gointercept.This(simpleFunction).With(
+				interceptors.CreateAPIGatewayProxyResponse(&interceptors.DefaultStatusCodes{Success: http.StatusOK, Error: http.StatusBadRequest}),
+				interceptors.NormalizeHTTPRequestHeaders(true),
+				interceptors.ParseBody(&Input{}, false)),
+			expectedBody:           `{"Status":"Function ran successfully!","Content":"Random content"}`,
+			expectedStatus:         http.StatusOK,
+			expectedRequestHeaders: map[string]string{"Content-Type": "application/json", "X-DNSPrefetch-Control": "off"},
 		},
 	}
 
@@ -224,11 +253,24 @@ func TestAPIGatewayRequestResponse(t *testing.T) {
 					t.Errorf("Response was expected to have headers but it has none")
 					t.Fail()
 				}
-				for key, value := range *c.expectedHeaders {
+				for key, value := range c.expectedHeaders {
 					if response.Headers[key] != value {
 						t.Errorf("Expected header '%s: %s' in response not found", key, value)
 						t.Fail()
 					}
+				}
+			}
+			if c.expectedRequestHeaders != nil {
+				if apigwrequest, ok := c.request.(events.APIGatewayProxyRequest); ok {
+					for key, value := range c.expectedRequestHeaders {
+						if apigwrequest.Headers[key] != value {
+							t.Errorf("Expected HTTP request header '%s: %s' in request not found", key, value)
+							t.Fail()
+						}
+					}
+				} else {
+					t.Errorf("Request was expected to have headers but it has none")
+					t.Fail()
 				}
 			}
 		})

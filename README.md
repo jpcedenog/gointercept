@@ -81,8 +81,9 @@ func main() {
         interceptors.AddHeaders(map[string]string{"Content-Type": "application/json", "company-header1": "foo1", "company-header2": "foo2"}),
         interceptors.AddSecurityHeaders(),
         interceptors.CreateAPIGatewayProxyResponse(&interceptors.DefaultStatusCodes{Success: 200, Error: 400}),
-        interceptors.ValidateJsonSchema(schema),
-        interceptors.ParseInput(&Input{}, false),
+        interceptors.ValidateBodyJSONSchema(schema),
+        interceptors.NormalizeHTTPRequestHeaders(true),
+        interceptors.ParseBody(&Input{}, false),
 	))
 }
 ```
@@ -153,9 +154,10 @@ Name | Phases | Description
 Notify | Before and After | Used for logging purposes. It prints the two given messages during the *Before* and *After* phases respectively.
 CreateAPIGatewayProxyResponse | After or OnError | Formats the output or error of the Lambda handler as an instance of [API Gateway Proxy Response](https://godoc.org/github.com/aws/aws-lambda-go/events#APIGatewayProxyResponse)
 AddHeaders | After | Adds the given HTTP headers (provided as key-value pairs) to the response. It converts the response to an APIGatewayProxyResponse if it is not already one
-ParseInput | Before | Reads the JSON-encoded payload (request) and stores it in the value pointed to by its input
+ParseBody | Before | Reads the JSON-encoded payload (request) and stores it in the value pointed to by its input
 AddSecurityHeaders | After | Adds the default security HTTP headers (provided as key-value pairs) to the response. It converts the response to an APIGatewayProxyResponse if it is not already one. These headers follow security best practices, similar to what is done by [HelmetJS](https://helmetjs.github.io/)
-ValidateJsonSchema | Before | Validates the payload against the given JSON schema. For more information check [qrio.io's JsonSchema](https://github.com/qri-io/jsonschema)
+ValidateBodyJSONSchema | Before | Validates the payload against the given JSON schema. For more information check [qrio.io's JsonSchema](https://github.com/qri-io/jsonschema)
+NormalizeHTTPRequestHeaders | Before | Captures the headers (single and multi-value) sent in the API Gateway (HTTP) request and normalizes them to either an all-lowercase form or to their canonical form (content-type as opposed to Content-Type) based on the value of the given 'canonical' parameter.
 
 ### Contributing
 

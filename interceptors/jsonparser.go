@@ -12,8 +12,8 @@ import (
 	"strings"
 )
 
-// ParseInput parses the Lambda function's payload into the value pointed to by the input parameter
-func ParseInput(input interface{}, allowUnknownFields bool) gointercept.Interceptor {
+// ParseBody parses the Lambda function's payload into the value pointed to by the input parameter
+func ParseBody(input interface{}, allowUnknownFields bool) gointercept.Interceptor {
 	var localPayload interface{}
 	return gointercept.Interceptor{
 		Before: func(ctx context.Context, payload interface{}) (interface{}, error) {

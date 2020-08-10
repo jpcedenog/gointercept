@@ -11,24 +11,25 @@ import (
 // is already an APIGatewayResponse, it is returned as is. Otherwise, a new instance is created and the given parameter
 // is attached as part of the body field
 func ConvertToAPIGatewayResponse(response interface{}) (events.APIGatewayProxyResponse, error) {
-	apiGatewayResponse, ok := response.(events.APIGatewayProxyResponse)
+	var apiGatewayResponse events.APIGatewayProxyResponse
 
-	if !ok {
-		apiGatewayResponse = events.APIGatewayProxyResponse{}
-
-		body, ok := response.([]byte)
-		if !ok {
-			b, err := json.Marshal(response)
-			if err != nil {
-				return apiGatewayResponse, err
-			}
-			body = b
-		}
-
-		var buf bytes.Buffer
-		json.HTMLEscape(&buf, body)
-		apiGatewayResponse.Body = buf.String()
+	if apiGatewayResponse, ok := response.(events.APIGatewayProxyResponse); ok {
+		return apiGatewayResponse, nil
 	}
+
+	apiGatewayResponse = events.APIGatewayProxyResponse{}
+	body, ok := response.([]byte)
+	if !ok {
+		b, err := json.Marshal(response)
+		if err != nil {
+			return apiGatewayResponse, err
+		}
+		body = b
+	}
+
+	var buf bytes.Buffer
+	json.HTMLEscape(&buf, body)
+	apiGatewayResponse.Body = buf.String()
 
 	return apiGatewayResponse, nil
 }
@@ -39,11 +40,10 @@ type input struct {
 
 // GetBody returns the contents of the Body field from the given parameter
 func GetBody(request interface{}) (string, error) {
-	apiGatewayRequest, ok := request.(events.APIGatewayProxyRequest)
-	if ok {
+	if apiGatewayRequest, ok := request.(events.APIGatewayProxyRequest); ok {
 		return apiGatewayRequest.Body, nil
-
 	}
+
 	bodyBytes, err := GetBytes(request)
 
 	if err != nil {
