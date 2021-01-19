@@ -9,6 +9,8 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/jpcedenog/gointercept)](https://goreportcard.com/report/github.com/jpcedenog/gointercept)
 ![Tests](https://github.com/jpcedenog/gointercept/workflows/Tests/badge.svg)
 
+<a href="https://www.buymeacoffee.com/jpcedenog"><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=&slug=jpcedenog&button_colour=5F7FFF&font_colour=ffffff&font_family=Cookie&outline_colour=000000&coffee_colour=FFDD00"></a>
+
 ### About GoIntercept
 
 A middleware layer allows developers to focus on the business logic when designing and implementing their core business logic. This way, additional functionality like authentication/authorization, input validation , serialization, etc. can be added in a modular and reusable way.
