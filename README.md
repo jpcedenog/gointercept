@@ -9,7 +9,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/jpcedenog/gointercept)](https://goreportcard.com/report/github.com/jpcedenog/gointercept)
 ![Tests](https://github.com/jpcedenog/gointercept/workflows/Tests/badge.svg)
 
-<a href="https://www.buymeacoffee.com/jpcedenog" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
+<a href="https://www.buymeacoffee.com/jpcedenog"><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=&slug=jpcedenog&button_colour=5F7FFF&font_colour=ffffff&font_family=Cookie&outline_colour=000000&coffee_colour=FFDD00"></a>
 
 ### About GoIntercept
 
